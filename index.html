@@ -1,104 +1,513 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>빅캣아카데미 세미나</title>
-<meta name="theme-color" content="#16130f">
-<link rel="stylesheet" href="app/style.css">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>세윤이 낱말 앱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+<style>
+/*
+VOICE: 다정한 공부 짝꿍. 짧게 풀고, 바로 뜻을 알려 주는 앱.
+IDEA: 손안의 낱말 문제집. 한 번에 한 문제, 큰 보기 버튼.
+PICTURE: 문제 카드 자체가 화면의 주인공. 홈은 과목별 진도 카드.
+COLOUR and TYPE: 국어 산호, 사회 청록, 과학 남색. Jua 제목 + Gowun Dodum 본문.
+LAYOUT: 휴대폰 한 칸 세로 흐름, 상단 뒤로가기 막대, 엄지로 닿는 큰 버튼.
+*/
+:root{color-scheme:light dark;--bg:light-dark(#fbf7f2,#14161d);--card:light-dark(#fff,#1f2230);--ink:light-dark(#1d1b22,#f2efe9);--mute:light-dark(#6b6670,#a9a5b3);--line:light-dark(#e8e0d6,#30344a);--ok:#1f9d55;--okb:light-dark(#dcf5e6,#173826);--no:#d64541;--nob:light-dark(#fde3e1,#3d1d1d);--ac:#e2574c;--acs:light-dark(#fde5e2,#3a2326)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+[data-s="사회"]{--ac:#0f8b8d;--acs:light-dark(#dbf1f1,#16302f)}
+[data-s="과학"]{--ac:#4054d6;--acs:light-dark(#e3e7ff,#1e2347)}
+[data-s="전체"]{--ac:#8a5cd0;--acs:light-dark(#efe6fb,#2a2140)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 "Gowun Dodum",system-ui,sans-serif;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 32px)}
+h1,h2,.jua{font-family:Jua,sans-serif;font-weight:400}
+h1{font-size:30px;line-height:1.1;margin:6px 0 4px}
+.sub{color:var(--mute);font-size:15px;margin:0 0 16px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+[hidden]{display:none!important}
+.subs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.sc{border:2px solid var(--line);background:var(--card);border-radius:20px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:104px}
+.sc b{font:400 22px Jua,sans-serif;color:var(--ac)}
+.sc small{color:var(--mute);font-size:14px}
+.sc[aria-pressed=true]{border-color:var(--ac);background:var(--acs)}
+.meter{height:7px;border-radius:9px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--ac);border-radius:9px}
+.units{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 18px}
+.units button{min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;font-size:15px}
+.units button[aria-pressed=true]{background:var(--acs);border-color:var(--ac);font-weight:700}
+.modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.mode{border:0;border-radius:20px;padding:16px;min-height:112px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;background:var(--card);border:2px solid var(--line)}
+.mode.big{grid-column:1/-1;background:var(--ac);border-color:var(--ac);color:#fff;min-height:120px}
+.mode b{font:400 23px Jua,sans-serif}
+.mode span{font-size:14px;opacity:.85}
+.mode svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.top button{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);display:grid;place-items:center;flex:none}
+.top svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.top .t{flex:1;font:400 19px Jua,sans-serif}
+.top .n{color:var(--mute);font-size:15px;white-space:nowrap}
+.bar{height:8px;border-radius:9px;background:var(--line);overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .3s}
+.qcard{background:var(--card);border:2px solid var(--line);border-radius:24px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden}
+.qcard::before{content:"";position:absolute;inset:0 0 auto;height:7px;background:var(--ac)}
+.qtype{font-size:14px;color:var(--ac);font-weight:700;margin:4px 0 8px}
+.prompt{font-size:clamp(20px,5.4vw,24px);line-height:1.5}
+.prompt.w{font:400 clamp(36px,10vw,52px)/1.1 Jua,sans-serif;text-wrap:balance}
+.tagl{font-size:13px;color:var(--mute);margin-top:12px}
+.opts{display:grid;gap:10px}
+.opt{border:2px solid var(--line);background:var(--card);border-radius:16px;min-height:60px;padding:12px 16px;text-align:left;display:flex;gap:12px;align-items:center;font-size:18px;line-height:1.4}
+.opt.w{font:400 22px Jua,sans-serif}
+.opt i{flex:none;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font:700 14px system-ui;font-style:normal;color:var(--mute)}
+.opt.ok{border-color:var(--ok);background:var(--okb)}.opt.ok i{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.no{border-color:var(--no);background:var(--nob)}.opt.no i{background:var(--no);border-color:var(--no);color:#fff}
+.opt:disabled{cursor:default}
+.fb{border-radius:18px;padding:16px;margin-top:14px;display:grid;gap:6px}
+.fb.ok{background:var(--okb)}.fb.no{background:var(--nob)}
+.fb .v{font:400 21px Jua,sans-serif}.fb.ok .v{color:var(--ok)}.fb.no .v{color:var(--no)}
+.fb .ww{font:400 24px Jua,sans-serif;display:flex;align-items:center;gap:8px}
+.spk{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);display:inline-grid;place-items:center;flex:none}
+.spk svg{width:20px;height:20px;fill:currentColor}
+.cta{width:100%;min-height:58px;border-radius:18px;border:0;background:var(--ac);color:#fff;font:400 21px Jua,sans-serif;margin-top:14px}
+.ghost{width:100%;min-height:52px;border-radius:16px;border:2px solid var(--line);background:var(--card);font:400 19px Jua,sans-serif;margin-top:10px}
+.score{text-align:center;padding:10px 0 6px}
+.score .big{font:400 clamp(64px,20vw,96px)/1 Jua,sans-serif;color:var(--ac)}
+.score p{margin:6px 0 0;font-size:18px}
+.list{display:grid;gap:8px;margin-top:14px}
+.li{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:start}
+.li b{font:400 20px Jua,sans-serif}
+.li p{margin:0;grid-column:1;font-size:16px;color:var(--mute)}
+.li .acts{grid-row:1/3;grid-column:2;display:flex;gap:6px}
+.li .x{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:transparent;font-size:14px}
+.empty{text-align:center;color:var(--mute);padding:40px 10px}
+.flash{min-height:330px;display:flex;flex-direction:column;justify-content:center;text-align:center;cursor:pointer;user-select:none}
+.flash .fw{font:400 clamp(38px,11vw,58px)/1.1 Jua,sans-serif;text-wrap:balance}
+.flash .fm{font-size:clamp(19px,5vw,22px);margin-top:16px}
+.flash .hint{color:var(--mute);font-size:14px;margin-top:18px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.two button{min-height:60px;border-radius:18px;font:400 20px Jua,sans-serif;border:2px solid}
+.two .k{border-color:var(--no);background:var(--nob);color:var(--no)}
+.two .y{border-color:var(--ok);background:var(--okb);color:var(--ok)}
+.seg{display:flex;gap:6px;margin-bottom:10px}
+.seg button{flex:1;min-height:46px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);font-size:15px;white-space:nowrap}
+.seg button[aria-pressed=true]{border-color:var(--ac);background:var(--acs);font-weight:700}
+.player{display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:10px;margin:4px 0 16px}
+.player button{min-height:70px;border-radius:20px;border:2px solid var(--line);background:var(--card);display:grid;place-items:center}
+.player #lplay{background:var(--ac);border-color:var(--ac);color:#fff;font:400 23px Jua,sans-serif}
+.player svg{width:28px;height:28px;fill:currentColor}
+.dim{opacity:.08;transition:opacity .3s}
+.note{font-size:14px;color:var(--mute);margin-top:18px}
+.warn{background:var(--nob);border-radius:12px;padding:10px 14px;font-size:15px;margin-bottom:12px}
+@media(prefers-reduced-motion:reduce){.bar i,.dim{transition:none}}
+</style>
 </head>
-<body>
-<header class="top">
-  <div class="top-inner">
-    <div class="brand">
-      <div class="logo">BIG<br>CAT</div>
-      <div>
-        <h1 id="appTitle">빅캣아카데미 세미나</h1>
-        <p id="appSub" class="sub"></p>
-      </div>
-    </div>
-    <div class="top-actions">
-      <button id="editToggle" class="btn ghost" type="button">✏️ 편집</button>
-    </div>
-  </div>
-  <div class="search-row">
-    <input id="search" type="search" placeholder="교구·활동 검색" autocomplete="off">
-  </div>
-  <nav id="tabs" class="tabs" aria-label="층 선택"></nav>
-</header>
+<body data-s="국어">
+<div class="wrap">
 
-<div id="editBar" class="editbar" hidden>
-  <div class="editbar-inner">
-    <span id="editState">편집 모드 · 변경사항은 이 브라우저에 임시 저장돼요</span>
-    <div class="editbar-btns">
-      <button id="exportZip" class="btn gold" type="button">📦 변경사항 zip 받기</button>
-      <button id="exportData" class="btn" type="button">data.js 받기</button>
-      <button id="resetData" class="btn danger" type="button">되돌리기</button>
-    </div>
+<section id="home">
+  <h1>세윤이 낱말 앱</h1>
+  <p class="sub">4학년 2학기 국어 · 사회 · 과학 핵심 낱말</p>
+  <div class="subs" id="subs"></div>
+  <div class="units" id="units"></div>
+  <div class="modes">
+    <button class="mode big" data-go="quiz"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg><div><b>문제 풀기</b><br><span id="qinfo">10문제 · 풀고 바로 뜻 확인</span></div></button>
+    <button class="mode" data-go="exam" style="grid-column:1/-1;min-height:84px;border-color:var(--ac)"><svg viewBox="0 0 24 24"><path d="M9 4h6v3H9zM6 6h12v15H6z"/><path d="M9 12l2 2 4-4M9 17h6"/></svg><div><b>실전 사지선다 12문제</b> <span>국어·사회·과학 4문제씩</span></div></button>
+    <button class="mode" data-go="cards"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg><div><b>낱말 카드</b><br><span>눌러서 뜻 보기</span></div></button>
+    <button class="mode" data-go="wrong"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M9 10l6 6M15 10l-6 6"/></svg><div><b>오답 노트</b><br><span id="winfo">틀린 낱말 0개</span></div></button>
+    <button class="mode" data-go="listen" style="grid-column:1/-1;min-height:84px"><svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/></svg><div><b>듣기 모드</b> <span>차에서 소리로 듣기</span></div></button>
   </div>
+  <p class="note">문제를 맞히면 ‘외운 낱말’이 되고, 틀리면 오답 노트에 모여요. 기록은 이 휴대폰에만 저장돼요.</p>
+</section>
+
+<section id="quiz" hidden>
+  <div class="top"><button data-home aria-label="처음으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><span class="t" id="qtitle">문제 풀기</span><span class="n" id="qn"></span></div>
+  <div class="bar"><i id="qbar"></i></div>
+  <div id="qbody"></div>
+</section>
+
+<section id="cards" hidden>
+  <div class="top"><button data-home aria-label="처음으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><span class="t">낱말 카드</span><span class="n" id="cn"></span></div>
+  <div class="bar"><i id="cbar"></i></div>
+  <div class="qcard flash" id="flash"></div>
+  <div class="two"><button class="k" id="cno">몰라요</button><button class="y" id="cyes">알아요</button></div>
+</section>
+
+<section id="wrong" hidden>
+  <div class="top"><button data-home aria-label="처음으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><span class="t">오답 노트</span><span class="n" id="wn"></span></div>
+  <div id="wbody"></div>
+</section>
+
+<section id="listen" hidden>
+  <div class="top"><button data-home aria-label="처음으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><span class="t">듣기 모드</span><span class="n" id="ln"></span></div>
+  <div class="warn" id="lwarn" hidden>이 기기에서는 음성 읽기가 지원되지 않아요. Chrome이나 Safari에서 열어 보세요.</div>
+  <div class="qcard" style="min-height:260px">
+    <div class="tagl" id="ltag" style="margin-top:4px"></div>
+    <div class="prompt w" id="lw" style="margin-top:10px"></div>
+    <div class="prompt" id="lm" style="margin-top:10px"></div>
+    <div class="tagl" id="lst">재생을 누르면 소리로 읽어 줘요.</div>
+  </div>
+  <div class="player">
+    <button id="lprev" aria-label="이전"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+    <button id="lplay">재생</button>
+    <button id="lnext" aria-label="다음"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+  </div>
+  <div class="seg" id="lmode"><button data-v="w">낱말 → 뜻</button><button data-v="m">뜻 → 낱말 퀴즈</button></div>
+  <div class="seg" id="lgap"><button data-v="2">생각 2초</button><button data-v="4">4초</button><button data-v="6">6초</button></div>
+  <p class="note">화면이 꺼지면 소리가 멈출 수 있어요. 차에서는 화면을 켜 두고 블루투스로 연결하세요.</p>
+</section>
+
 </div>
+<script>
+{
+const RAW={
+"국어":{
+"4단원 · 책 속의 길을 따라":`추궁|잘못한 일에 대하여 엄하게 따져서 밝힘
+우물쭈물|행동 등을 분명하게 하지 못하고 자꾸 망설이며 몹시 흐리멍덩하게 하는 모양
+재촉하다|어떤 일을 빨리하도록 조르다
+속사포|탄알을 쉽게 장전하여 빨리 발사할 수 있는 포. 말을 쉬지 않고 빠르게 하는 모습에 비유해요
+손해|물질적으로나 정신적으로 제 값어치보다 얻는 것이 적음
+억울하다|아무 잘못 없이 꾸중을 듣거나 벌을 받아서 분하고 답답하다
+뜬금없이|갑작스럽고도 엉뚱하게
+의문|의심스럽게 생각함. 또는 그런 문제나 사실
+충고|남의 결함이나 잘못을 진심으로 타이름
+대충|대강을 추리는 정도로
+소비 기한|먹거나 쓸 수 있는 기간
+처방|병을 치료하기 위해 증상에 따라 약을 짓는 방법
+개봉|열지 못하게 붙여 두었던 것을 떼거나 엶
+항생제|미생물이 만들어 내는 항생 물질로 된 약제
+폐의약품 수거함|더 이상 쓰지 않는 약을 모아서 따로 버리는 통
+경고하다|조심하거나 삼가도록 미리 주의를 주다
+요령|일을 하는 데 꼭 필요한 묘한 이치
+터득하다|깊이 생각하여 이치를 깨달아 알아내다
+내성|견딜 수 있는 힘. 항생제를 많이 쓰면 내성균이 생겨요
+저작권|사람의 생각이나 감정을 표현한 창작물에 대하여 그것을 만든 사람이 가지는 권리
+창작|예술 작품을 독창적으로 지어냄. 방안이나 물건을 처음으로 만들어 냄
+산업|사람의 생활을 경제적으로 풍요롭게 하기 위해 재화나 서비스를 생산하는 사업
+발전하다|더 낫고 좋은 상태나 더 높은 단계로 나아가다
+수출|국내의 상품이나 기술을 외국으로 팔아 내보냄
+침해하다|침범하여 해를 끼치다
+설명하는 글|어떤 지식이나 정보를 이해하기 쉽게 객관적으로 전달하는 글. 중심 내용을 파악하며 읽어요
+의견을 제시하는 글|어떤 문제에 대해 자신의 생각이나 주장을 밝혀 쓴 글. 의견과 그 이유가 알맞은지 살펴요
+읽기 전 활동|제목이나 차례를 보며 내용 예상하기, 자신이 알고 있는 내용 떠올리기
+읽기 중 활동|예상한 내용이 맞는지 확인하기, 중심 내용과 새롭게 안 내용 파악하기
+읽기 후 활동|글 전체 내용을 요약하여 정리하기, 더 알고 싶은 내용 생각하기
+기쁨의 비밀|기쁨 안에 이쁨이 들어 있다는 말놀이 시. 기쁨도 너무 뻐기면 끊어질 수 있으니 조심하자는 내용
+화살나무|나뭇가지에 화살의 날개처럼 생긴 것이 달려 있어서 붙은 이름. 먹거리, 약재, 고약의 원료로 써요`,
+"6단원 · 상상의 날개":`원인|어떤 일이 일어나게 된 까닭
+결과|어떤 까닭 때문에 생긴 일
+규수|혼인하지 않은 남의 집 딸을 정중하게 이르는 말
+손을 쓰다|어떠한 일에 필요한 조치를 취하다
+대청마루|한옥에서 방과 방 사이에 있는 큰 마루
+의아하다|의심스럽고 이상하다
+전파되다|전해져 널리 퍼지게 되다
+명성|세상에 널리 퍼져 평판 높은 이름
+방 씨 규수의 성격|대나무를 화살인 척 던져 도둑을 쫓아낸 것으로 보아 지혜롭고 침착하고 담대해요
+넝쿨|길게 뻗어 나가면서 다른 물건을 감기도 하고 땅바닥에 퍼지기도 하는 식물의 줄기
+씨호박|씨를 받기 위하여 잘 익은 다음에 따는 호박
+탐이 나다|가지거나 차지하고 싶은 마음이 생기다
+혀를 차다|마음이 언짢거나 불만스러움을 나타내다
+어이가 없다|일이 너무 뜻밖이어서 기가 막히는 듯하다
+잠결에|의식이 흐릿할 정도로 잠이 어렴풋이 들거나 깬 상태에
+얹어 놓다|위에 올려놓다
+양심|스스로 옳고 그름을 판단하는 기준에 따라 바른 말과 행동을 하려는 마음
+곧이듣다|남의 말을 듣고 그대로 믿다
+갈무리하다|물건 등을 잘 정리하거나 간수하다
+찜찜하다|마음에 꺼림칙한 느낌이 있다
+흉측하다|성질이나 말과 행동이 악하고 독하다
+이어질 내용 상상해 쓰기|인물의 성격, 이야기의 흐름, 원인과 결과를 생각하며 뒷이야기를 써요`,
+"맞춤법":`아니에요|아니예요|‘아니다’에 ‘-에요’가 붙은 말이라서 아니에요가 맞아요
+어떡해|어떻해|‘어떻게 해’를 줄인 말이라서 어떡해로 써요
+며칠 동안|몇일 동안|‘몇일’은 틀린 말이고 ‘며칠’이 맞아요
+묻히거나|뭍히거나|땅속에 들어가 덮이는 것은 ‘묻히다’예요
+쳐다보다|처다보다|위를 향해 바라보는 것은 ‘쳐다보다’로 써요
+한참 뒤|한창 뒤|시간이 꽤 지난 것은 ‘한참’이에요. ‘한창’은 가장 활발한 때를 말해요
+아무래도|아무레도|‘아무래도’로 써요
+먹었대|먹었데|남에게 들은 말을 전할 때는 ‘-대’를 써요`},
+"사회":{
+"1단원 · 민주주의와 자치":`민주주의|공동체 구성원들이 공동의 일을 결정할 때 자유롭고 평등하게 서로의 의견을 모아 의사 결정하는 방식
+의사 결정|어떤 일에 대한 여러 의견 가운데 하나를 선택하는 것
+자유|자신이 하고 싶은 것을 할 수 있는 권리. 남의 뜻에 무조건 따르거나 얽매이지 않는 상태
+평등|모든 사람이 신분, 재산, 외모, 성별, 종교 등으로 차별받지 않고 공정하게 대우받는 것
+다수결의 원칙|회의에서 많은 사람이 동의하는 생각에 따라 최종적으로 의견을 결정하는 방식
+소수의 의견 존중|다수결로 정하더라도 소수의 의견에도 귀 기울여 듣고 존중해야 해요
+대화와 타협|서로 의견을 나누고, 생각이 다르면 양보하며 해결하는 방법
+참여|공동체의 문제를 나의 일처럼 여기고 적극적으로 관심을 가지며 문제 해결 과정에 함께하는 태도
+관용|나와 다른 생각이나 의견을 이해하고 존중하는 태도
+비판|상대방의 의견이 사실인지, 옳은지 그른지를 따져 보는 태도
+타협|자기 의견만 고집하지 않고 서로 양보하여 협의하는 태도
+실천|생각하거나 계획한 일을 실제로 행동으로 옮기는 것. 함께 결정한 일은 기꺼이 따라요
+선거|투표로 집단의 대표를 뽑는 일
+선거 절차|후보자 추천, 후보자 공약 발표, 투표, 개표 및 결과 확인, 당선 소감 발표 순서예요
+학생 자치회|선거로 뽑힌 학생 대표들이 학생 의견을 모아 학교에 전달하고 문제를 해결하는 모임
+학교 자치|학생, 교사, 학부모 등 학교 구성원이 참여하여 학교의 중요한 일을 결정하고 문제를 해결하는 것
+주민|일정한 지역에 사는 사람
+주민 자치|주민들이 지역의 주인으로서 지역의 중요한 일을 결정하고 문제를 해결해 나가며 지역사회를 운영하는 것
+주민 자치회|지역의 일을 처리하거나 문제를 해결하기 위해 주민들이 스스로 만들어 운영하는 단체
+주민 참여|지역 주민들이 지역의 중요한 일을 의논하거나 문제 해결 과정에 나서는 것
+조례|지역의 일을 처리하기 위해 시, 군, 구 의회에서 만드는 법
+공공 기관|개인이 아닌 여러 사람의 공통된 이익을 위해 국가나 지방자치단체가 운영하는 곳
+공청회|공공 기관이 중요한 일을 결정하기 전에 주민, 전문가 등 여러 사람이 모여 의견을 나누는 회의
+시민 단체|시민들이 스스로 모여 사회 전체의 이익을 위해 활동하는 단체
+주민 투표|지역의 중요한 일을 주민들이 직접 투표로 결정하는 것
+서명 운동|같은 뜻을 가진 사람들이 자기 이름을 적어 의견을 모으는 활동
+주민 참여 예산제|공공 기관이 예산을 어떻게 쓸지 정할 때 주민 의견을 반영하는 제도`,
+"3단원 · 다양한 환경과 삶의 모습":`환경|우리가 살아가는 공간을 둘러싸고 있는 모든 것
+자연환경|사람이 만들지 않고 자연 그대로 있는 환경. 산, 하천, 바다, 들과 눈, 비, 바람, 기온
+인문환경|사람들이 만든 장소나 시설로 이루어진 환경. 논, 밭, 도로, 다리, 아파트, 공장
+목장|소, 말, 양 같은 동물을 놓아 기르는 곳. 주로 산에 자리 잡고 있어요
+산림욕장|숲에서 맑은 공기를 마시며 쉴 수 있도록 만든 곳
+댐|강이나 바닷물을 막기 위해 만든 큰 둑. 물을 저장하고 전기를 만들어요
+비닐하우스|투명한 비닐로 덮은 시설. 날씨나 계절에 상관없이 작물을 재배할 수 있어요
+논|벼를 심고 기르는 땅. 주로 넓은 들판에 있어요
+갯벌|밀물 때는 물에 잠기고 썰물 때는 물 밖으로 드러나는 평평한 땅
+모래사장|강가나 바닷가에 있는 넓고 큰 모래벌판
+양식장|바닷물이나 민물을 이용해 물고기, 조개, 김, 미역 같은 해산물을 기르는 곳
+항구|배가 드나드는 곳. 물건을 싣고 나르거나 배가 머물 수 있어요
+숙박|여관이나 호텔 등에서 잠을 자고 머무르는 것
+공업|기계로 재료를 다루어서 새로운 물건을 만들어 내는 산업
+간척|바다나 호수의 일부를 둑으로 막고 물을 빼내어 육지로 만드는 일
+생태 통로|야생 동물이 안전하게 다닐 수 있도록 도로나 철도 위에 다리를 놓거나 아래에 굴을 파서 만든 길
+자연 휴식년제|자연환경이 원래 모습을 회복하도록 일정 기간 사람의 출입을 막는 제도
+체증|교통의 흐름이 순조롭지 않아 길이 막히는 상태
+순천만 습지|전라남도 순천에 있는 습지. 순천은 자연과 인간이 조화를 이루는 생태 도시예요
+도시|많은 사람이 모여 살며 정치, 경제, 사회, 문화의 중심지가 되는 곳
+서울특별시|정치, 경제, 문화가 고르게 발달한 우리나라의 수도
+세종특별자치시|나라의 균형 발전을 위해 계획적으로 만든 도시. 공공 기관이 많아요
+속초|아름다운 자연과 관광지가 많은 강원특별자치도의 관광 도시
+광양|철을 만드는 공장이 모여 있는 전라남도의 공업 도시
+인구|일정한 지역에 사는 사람의 수
+산업|사람이 생활하는 데 필요한 것을 얻거나 만들어 내는 모든 활동
+제조업|물건을 대량으로 만드는 사업
+상업|물건을 사고파는 일을 통하여 이익을 얻는 활동
+편의 시설|사람들의 생활에 편리함을 주는 시설
+대중교통|기차, 버스, 배, 비행기처럼 여러 사람이 함께 이용하는 교통수단
+여가|일이 끝난 후 자유롭게 쉴 수 있는 시간
+바람길 숲|깨끗한 공기가 도시에 잘 퍼지도록 바람이 지나는 길을 따라 나무를 심어 만든 숲
+캠페인|사람들이 좋은 일을 함께 할 수 있도록 알리고 실천하는 활동
+보수|고장 나거나 망가진 것을 고쳐서 다시 쓸 수 있게 만드는 것
+환경 문제|사람들의 활동으로 공기, 물, 땅이 오염되는 문제. 대기 오염, 수질 오염, 토양 오염
+교통 문제|자동차가 너무 많아 길이 막히거나 주차할 곳이 부족해 불편을 겪는 문제`},
+"과학":{
+"밤하늘 관찰":`달의 바다|달 표면에서 어둡게 보이는 곳
+충돌 구덩이|달 표면에 있는 크고 작은 둥근 구덩이. 운석의 충돌로 생겼다고 생각해요
+달의 모양|지구처럼 둥근 공 모양. 표면은 어두운 회색이에요
+표면|사물의 겉으로 나타난 부분
+천체|우주에 있는 모든 물체. 별이나 달 같은 것
+쌍안경|양쪽 눈으로 멀리 있는 물체를 크게 보는 도구. 가볍지만 흔들리기 쉬워요
+천체 망원경|천체를 크고 자세하게 관찰하는 도구. 다리를 펴서 고정해요
+초승달|오른쪽이 가느다란 눈썹 모양의 달. 음력 2일에서 3일 무렵
+상현달|오른쪽이 둥근 반달. 음력 7일에서 8일 무렵
+보름달|둥근 모양으로 꽉 찬 달. 음력 15일 무렵
+하현달|왼쪽이 둥근 반달. 음력 22일에서 23일 무렵
+그믐달|왼쪽이 가느다란 눈썹 모양의 달. 음력 27일에서 28일 무렵
+달 모양 변화 순서|초승달, 상현달, 보름달, 하현달, 그믐달. 약 30일 주기로 반복돼요
+주기|같은 현상이 한 번 나타나고부터 다음 번 되풀이되기까지의 기간
+태양계|태양과 태양의 영향을 받는 천체, 그리고 그 공간
+태양|태양계의 중심에 있고, 태양계에서 유일하게 스스로 빛을 내는 별
+별|스스로 빛을 내는 천체
+행성|태양 주위를 도는 천체. 태양계에는 8개의 행성이 있어요
+위성|행성 주위를 도는 천체. 달은 지구의 위성이에요
+혜성|먼지와 얼음으로 이루어진 천체. 태양에 가까워지면 긴 꼬리가 생기기도 해요
+소행성|태양 주위를 돌지만 행성보다 작은 천체. 화성과 목성 사이에 많아요
+행성 크기 순서|목성, 토성, 천왕성, 해왕성, 지구, 금성, 화성, 수성
+가장 큰 행성|목성. 가장 작은 행성은 수성
+태양에서 가까운 순서|수성, 금성, 지구, 화성, 목성, 토성, 천왕성, 해왕성
+지구에서 가장 가까운 행성|금성
+고리가 뚜렷한 행성|토성. 표면에 줄무늬가 있고 여러 개의 고리가 뚜렷해요
+붉게 보이는 행성|화성. 표면이 단단한 땅이에요
+기체로 된 행성|목성, 토성, 천왕성, 해왕성. 모두 고리가 있어요
+모형|실물을 모방하여 만든 물건
+육안|쌍안경이나 망원경을 쓰지 않고 눈만 활용하는 것
+관측|눈이나 기기로 자연 현상의 상태나 변화를 관찰하여 측정하는 일
+별자리|밤하늘에 무리 지어 있는 별을 연결해 사람, 동물, 물건의 이름을 붙인 것
+북극성|북쪽 하늘에서 거의 움직이지 않는 별. 북극성을 찾으면 방위를 알 수 있어요
+북두칠성|일곱 개의 별로 된 국자 모양. 국자 끝 두 별 거리의 5배만큼 가면 북극성
+카시오페이아자리|W자 또는 M자 모양의 별자리. 북극성을 찾는 데 이용해요
+작은곰자리|일곱 개의 별로 되어 있고, 꼬리 끝의 별이 북극성이에요
+큰곰자리|북두칠성을 포함한 곰 모양의 별자리`,
+"여러 가지 기체":`주입|흘러 들어가도록 부어 넣음
+감압 장치|공기를 빼는 장치
+공기의 무게|공기는 눈에 보이지 않지만 무게가 있어요. 공기를 넣으면 무거워지고, 빼면 가벼워져요
+온도와 기체의 부피|온도가 높아지면 기체의 부피가 늘어나고, 낮아지면 줄어들어요
+찌그러진 탁구공|뜨거운 물에 넣으면 안의 기체 부피가 늘어나 펴져요
+압력|힘이 한 곳에 모여 눌리는 정도
+압력과 기체의 부피|압력을 높이면 기체의 부피가 줄어들고, 압력을 낮추면 늘어나요
+산 위의 과자 봉지|산 위는 압력이 낮아서 과자 봉지 속 기체의 부피가 늘어나 부풀어요
+잠수부의 공기 방울|수면으로 올라갈수록 압력이 낮아져 공기 방울이 점점 커져요
+무색|아무 빛깔이 없음
+무취|냄새가 없음
+압축|물질에 압력을 가하여 그 부피를 줄임
+팽창|부풀어서 부피가 커짐
+질소|다른 물질과 잘 반응하지 않아요. 식품 포장, 비행기 타이어, 자동차 에어백에 이용해요
+산소|생물이 숨 쉬는 데 필요하고, 다른 물질이 타게 도와줘요. 산소 캔, 압축 공기통, 산소 용접
+이산화 탄소|공기보다 무거워 가라앉고, 물질이 타는 것을 막아 줘요. 소화기, 탄산음료, 드라이아이스
+헬륨|공기보다 가벼워 위로 떠요. 풍선, 광고 기구, 비행선에 이용해요
+네온|특유의 빛을 내요. 조명 기구와 광고판에 이용해요
+수소|산소와 반응해 전기를 만들고 사용 후 물이 나오는 친환경 연료. 수소 자동차와 버스
+열기구|온도가 높아지면 기체의 부피가 늘어나는 성질을 이용해요`}};
 
-<main id="main"></main>
 
-<footer class="foot">BIGCAT ACADEMY · 세미나 교구 안내</footer>
+const DATA=[];
+for(const s in RAW)for(const u in RAW[s])RAW[s][u].trim().split("\n").forEach(l=>{const p=l.split("|").map(x=>x.trim());DATA.push(p.length>2?{s,u,w:p[0],x:p[1],m:p[2]}:{s,u,w:p[0],m:p[1]})});
+const K=d=>d.s+"/"+d.w;
+const $=id=>document.getElementById(id);
+const esc=t=>t.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const store={get(k,d){try{const v=localStorage.getItem("sy_"+k);return v==null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem("sy_"+k,v)}catch(e){}}};
+const parse=(k)=>{try{return JSON.parse(store.get(k,"[]"))}catch(e){return[]}};
+const mastered=new Set(parse("m")),wrong=new Set(parse("x"));
+const save=()=>{store.set("m",JSON.stringify([...mastered]));store.set("x",JSON.stringify([...wrong]))};
+const st={subj:store.get("subj","국어"),unit:store.get("unit","전체")};
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pool=()=>DATA.filter(d=>(st.subj==="전체"||d.s===st.subj)&&(st.unit==="전체"||d.u===st.unit));
+const mask=(m,w)=>{let r=m;const keys=[w];if(/하다$/.test(w))keys.push(w.slice(0,-2));else if(/다$/.test(w))keys.push(w.slice(0,-1));keys.filter(k=>k.length>=2).forEach(k=>{r=r.split(k).join("○○")});return r};
 
-<!-- 이미지 크게 보기 -->
-<div id="lightbox" class="lightbox" hidden>
-  <button class="lb-close" type="button" aria-label="닫기">✕</button>
-  <button class="lb-nav lb-prev" type="button" aria-label="이전">‹</button>
-  <img id="lbImg" alt="">
-  <button class="lb-nav lb-next" type="button" aria-label="다음">›</button>
-  <div class="lb-bar">
-    <span id="lbCount"></span>
-    <a id="lbDown" class="btn gold" download>⬇ 원본 다운로드</a>
-  </div>
-</div>
+/* 소리 */
+const tts="speechSynthesis" in window;let voice=null;
+const pick=()=>{if(!tts)return;const v=speechSynthesis.getVoices();voice=v.find(x=>/ko/i.test(x.lang)&&/Google|Yuna|Sora|Heami|SunHi/i.test(x.name))||v.find(x=>/ko/i.test(x.lang))||null};
+if(tts){pick();speechSynthesis.onvoiceschanged=pick}
+let rate=0.95;
+function say(text,tok){return new Promise(res=>{if(!tts||(tok!=null&&tok!==L.tok))return res();const u=new SpeechSynthesisUtterance(text.replace(/[‘’]/g,""));u.lang="ko-KR";if(voice)u.voice=voice;u.rate=rate;let d=false;const f=()=>{if(!d){d=true;clearTimeout(g);res()}};u.onend=f;u.onerror=f;const g=setTimeout(f,Math.max(4000,text.length*260));speechSynthesis.speak(u)})}
+const spkBtn=(t)=>`<button class="spk" data-say="${esc(t)}" aria-label="소리로 듣기"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM16 8.5a4 4 0 0 1 0 7M18.5 6a7.5 7.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none"/><path d="M4 9h4l5-4v14l-5-4H4z"/></svg></button>`;
+document.addEventListener("click",e=>{const b=e.target.closest("[data-say]");if(b){e.stopPropagation();if(tts){speechSynthesis.cancel();say(b.dataset.say)}}},true);
 
-<!-- 편집 창 -->
-<dialog id="editor" class="editor">
-  <form method="dialog" id="editForm">
-    <h2 id="edTitle">항목 수정</h2>
-    <label>층
-      <select name="floor" id="edFloor"></select>
-    </label>
-    <label>교구 이름<input name="title" required></label>
-    <label>활동 설명<textarea name="desc" rows="2"></textarea></label>
+/* 화면 전환 */
+const SECS=["home","quiz","cards","wrong","listen"];
+function go(id){stopListen();const sec=id==="exam"?"quiz":id;SECS.forEach(s=>$(s).hidden=s!==sec);scrollTo(0,0);({home:renderHome,exam:startExam,quiz:()=>startQuiz(),cards:startCards,wrong:renderWrong,listen:startListen})[id]()}
+document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g)go(g.dataset.go);if(e.target.closest("[data-home]"))go("home")});
 
-    <fieldset>
-      <legend>이미지 <small>(한 줄에 하나씩, assets/images/…)</small></legend>
-      <textarea name="images" rows="3"></textarea>
-      <label class="pick">＋ 이미지 파일 선택<input type="file" accept="image/*" multiple data-kind="images"></label>
-    </fieldset>
-    <fieldset>
-      <legend>음악·오디오 <small>(assets/audio/…)</small></legend>
-      <textarea name="audio" rows="2"></textarea>
-      <label class="pick">＋ 음악 파일 선택<input type="file" accept="audio/*" multiple data-kind="audio"></label>
-    </fieldset>
-    <fieldset>
-      <legend>다운로드 파일 <small>(PDF·PPT 등, assets/files/…)</small></legend>
-      <textarea name="files" rows="2"></textarea>
-      <label class="pick">＋ 파일 선택<input type="file" multiple data-kind="files"></label>
-    </fieldset>
-    <fieldset>
-      <legend>링크 버튼</legend>
-      <div id="edLinks"></div>
-      <button type="button" class="btn small" id="addLink">＋ 링크 추가</button>
-    </fieldset>
-    <label>비고 <small>(https:// 주소를 넣으면 자동으로 버튼이 돼요 · [버튼이름](주소) 형식도 가능)</small>
-      <textarea name="note" rows="3"></textarea>
-    </label>
-    <p class="hint">새로 선택한 파일은 지금 바로 미리보기 되고, ‘변경사항 zip 받기’에 함께 담겨요.</p>
-    <div class="ed-actions">
-      <button type="button" class="btn danger" id="edDelete">삭제</button>
-      <span class="spacer"></span>
-      <button type="button" class="btn" id="edCancel">취소</button>
-      <button type="submit" class="btn gold">저장</button>
-    </div>
-  </form>
-</dialog>
+/* 홈 */
+const SUBJ=["국어","사회","과학","전체"];
+function renderHome(){
+  document.body.dataset.s=st.subj;
+  $("subs").innerHTML=SUBJ.map(s=>{const p=DATA.filter(d=>s==="전체"||d.s===s),n=p.filter(d=>mastered.has(K(d))).length;return `<button class="sc" data-s="${s}" data-sub="${s}" aria-pressed="${s===st.subj}"><b>${s}</b><small>외운 낱말 ${n} / ${p.length}</small><div class="meter"><i style="width:${p.length?n/p.length*100:0}%"></i></div></button>`}).join("");
+  const units=st.subj==="전체"?[]:Object.keys(RAW[st.subj]);
+  if(st.unit!=="전체"&&!units.includes(st.unit))st.unit="전체";
+  $("units").innerHTML=["전체",...units].map(u=>`<button data-unit="${esc(u)}" aria-pressed="${u===st.unit}">${u==="전체"?"전체 단원":esc(u)}</button>`).join("");
+  const p=pool();$("qinfo").textContent=`${Math.min(10,p.length)}문제 · 풀고 바로 뜻 확인`;
+  $("winfo").textContent=`틀린 낱말 ${DATA.filter(d=>wrong.has(K(d))).length}개`;
+}
+$("subs").onclick=e=>{const b=e.target.closest("[data-sub]");if(!b)return;st.subj=b.dataset.sub;st.unit="전체";store.set("subj",st.subj);store.set("unit",st.unit);renderHome()};
+$("units").onclick=e=>{const b=e.target.closest("[data-unit]");if(!b)return;st.unit=b.dataset.unit;store.set("unit",st.unit);renderHome()};
 
-<script src="data.js"></script>
-<script src="app/jszip.min.js"></script>
-<script src="app/app.js"></script>
+/* 문제 풀기 */
+const Q={list:[],i:0,score:0,miss:[],title:""};
+function makeQ(d){
+  if(d.x){const oth=shuffle(DATA.filter(o=>o.x&&o!==d)).slice(0,2).map(o=>o.x);return{d,type:"바르게 쓴 것을 고르세요",prompt:"맞춤법 문제",pw:true,opts:shuffle([d.w,d.x,...oth]),ans:d.w,long:false}}
+  const near=shuffle(DATA.filter(o=>o!==d&&!o.x&&o.s===d.s&&o.u===d.u));
+  const far=shuffle(DATA.filter(o=>o!==d&&!o.x&&o.s===d.s&&o.u!==d.u));
+  const ds=[...near,...far].slice(0,3);
+  if(Math.random()<.5)return{d,type:"뜻을 읽고 알맞은 낱말을 고르세요",prompt:mask(d.m,d.w),pw:false,opts:shuffle([d,...ds]).map(o=>o.w),ans:d.w,long:false};
+  return{d,type:"이 낱말의 뜻으로 알맞은 것은?",prompt:d.w,pw:true,opts:shuffle([d,...ds]).map(o=>mask(o.m,o.w)),ans:mask(d.m,d.w),long:true};
+}
+const EXAM=[
+["국어","추궁","‘잘못한 일에 대하여 엄하게 따져서 밝힘’이라는 뜻의 낱말은?",["충고","추궁","재촉","경고"],1],
+["국어","어이가 없다","‘어이가 없다’의 뜻으로 알맞은 것은?",["가지거나 차지하고 싶은 마음이 생기다","마음이 언짢거나 불만스러움을 나타내다","일이 너무 뜻밖이어서 기가 막히는 듯하다","마음에 꺼림칙한 느낌이 있다"],2],
+["국어","저작권","‘저작권’의 뜻으로 알맞은 것은?",["국내의 상품이나 기술을 외국으로 팔아 내보내는 것","창작물을 만든 사람이 그 창작물에 대해 가지는 권리","병을 치료하기 위해 증상에 따라 약을 짓는 방법","남의 결함이나 잘못을 진심으로 타이르는 것"],1],
+["국어","어떡해","맞춤법에 맞게 바르게 쓴 것은?",["아니예요","몇일 동안","어떡해","아무레도"],2],
+["사회","다수결의 원칙","회의에서 많은 사람이 동의하는 생각에 따라 최종적으로 의견을 결정하는 방식은?",["다수결의 원칙","대화와 타협","소수의 의견 존중","선거"],0],
+["사회","조례","지역의 일을 처리하기 위해 시·군·구 의회에서 만드는 법은?",["공청회","조례","주민 투표","서명 운동"],1],
+["사회","간척","바다나 호수의 일부를 둑으로 막고 물을 빼내어 육지로 만드는 일은?",["양식장","갯벌","간척","생태 통로"],2],
+["사회","인문환경","다음 중 인문환경에 해당하는 것은?",["산","하천","비","논"],3],
+["과학","보름달","음력 15일 무렵에 볼 수 있는, 둥근 모양으로 꽉 찬 달은?",["상현달","보름달","하현달","그믐달"],1],
+["과학","가장 큰 행성","태양계 행성 가운데 크기가 가장 큰 행성은?",["토성","지구","목성","해왕성"],2],
+["과학","헬륨","공기보다 가벼워 위로 뜨기 때문에 풍선이나 비행선에 이용하는 기체는?",["질소","산소","이산화 탄소","헬륨"],3],
+["과학","압력과 기체의 부피","주사기의 피스톤을 눌러 압력을 높이면 주사기 안 기체의 부피는 어떻게 될까요?",["늘어난다","줄어든다","변하지 않는다","없어진다"],1]];
+function startExam(){
+  const qs=EXAM.map(([s,w,q,o,a])=>{const d=DATA.find(x=>x.s===s&&x.w===w);return{d,type:"실전 사지선다",prompt:q,pw:false,opts:o,ans:o[a],long:o.some(x=>x.length>8)}});
+  Q.list=qs;Q.i=0;Q.score=0;Q.miss=[];Q.title="실전 사지선다 12문제";Q.review=false;Q.exam=true;
+  $("qtitle").textContent=Q.title;renderQ();
+}
+function startQuiz(items,title){
+  let src=items||pool();
+  if(!items){const a=shuffle(src.slice());a.sort((x,y)=>mastered.has(K(x))-mastered.has(K(y)));src=a.slice(0,10)}
+  Q.exam=false;Q.list=shuffle(src.slice()).map(makeQ);Q.i=0;Q.score=0;Q.miss=[];Q.title=title||"문제 풀기";Q.review=!!items;
+  $("qtitle").textContent=Q.title;
+  if(!Q.list.length){$("qbody").innerHTML=`<div class="empty">풀 문제가 없어요.</div>`;return}
+  renderQ();
+}
+function renderQ(){
+  const q=Q.list[Q.i];
+  $("qn").textContent=`${Q.i+1} / ${Q.list.length}`;
+  $("qbar").style.width=(Q.i/Q.list.length*100)+"%";
+  $("qbody").innerHTML=`<div class="qcard"><div class="qtype">${q.type}</div><div class="prompt${q.pw?" w":""}">${esc(q.prompt)}</div><div class="tagl">${esc(q.d.s)} · ${esc(q.d.u)}</div></div>
+  <div class="opts" id="opts">${q.opts.map((o,k)=>`<button class="opt${q.long?"":" w"}" data-k="${k}"><i>${k+1}</i><span>${esc(o)}</span></button>`).join("")}</div><div id="fb"></div>`;
+}
+$("qbody").addEventListener("click",e=>{
+  const b=e.target.closest(".opt");
+  if(b&&!b.disabled){
+    const q=Q.list[Q.i],pickd=q.opts[+b.dataset.k],ok=pickd===q.ans,key=K(q.d);
+    document.querySelectorAll(".opt").forEach(x=>{x.disabled=true;const v=q.opts[+x.dataset.k];if(v===q.ans)x.classList.add("ok");else if(x===b)x.classList.add("no")});
+    if(ok){Q.score++;mastered.add(key);if(Q.review)wrong.delete(key)}else{Q.miss.push(q.d);wrong.add(key);mastered.delete(key)}
+    save();
+    const d=q.d,last=Q.i===Q.list.length-1;
+    $("fb").innerHTML=`<div class="fb ${ok?"ok":"no"}"><div class="v">${ok?"정답이에요!":"아쉬워요. 정답을 확인해요"}</div><div class="ww">${esc(d.w)} ${spkBtn(d.w+". "+d.m)}</div><div>${esc(d.m)}</div>${d.x?`<div style="color:var(--mute)">틀린 표기: ${esc(d.x)}</div>`:""}</div><button class="cta" id="qnext">${last?"결과 보기":"다음 문제"}</button>`;
+    $("qnext").scrollIntoView({behavior:"smooth",block:"nearest"});
+    return;
+  }
+  if(e.target.closest("#qnext")){Q.i++;if(Q.i<Q.list.length)renderQ();else endQuiz();scrollTo(0,0)}
+  if(e.target.closest("#qretry"))startQuiz(Q.miss.slice(),"틀린 문제 다시");
+  if(e.target.closest("#qagain"))Q.exam?startExam():startQuiz();
+});
+function endQuiz(){
+  $("qbar").style.width="100%";$("qn").textContent="";
+  const n=Q.list.length,s=Q.score,msg=s===n?"모두 맞혔어요! 정말 잘했어요.":s>=n*.7?"잘했어요! 틀린 것만 한 번 더 보면 완벽해요.":"괜찮아요. 틀린 낱말을 다시 풀어 보면 금방 외워져요.";
+  $("qbody").innerHTML=`<div class="qcard score"><div class="big">${s}<span style="font-size:.4em;color:var(--mute)"> / ${n}</span></div><p>${msg}</p></div>
+  ${Q.miss.length?`<div class="qtype">틀린 낱말</div><div class="list">${Q.miss.map(d=>`<div class="li"><b>${esc(d.w)}</b><p>${esc(d.m)}</p><div class="acts">${spkBtn(d.w+". "+d.m)}</div></div>`).join("")}</div><button class="cta" id="qretry">틀린 문제 다시 풀기</button>`:""}
+  <button class="${Q.miss.length?"ghost":"cta"}" id="qagain">${Q.exam?"실전 문제 다시 풀기":"새 문제 10개 풀기"}</button><button class="ghost" data-home>처음으로</button>`;
+}
+
+/* 낱말 카드 */
+const C={list:[],i:0,open:false};
+function startCards(){C.list=shuffle(pool().slice());C.i=0;C.open=false;renderCard()}
+function renderCard(){
+  const d=C.list[C.i];
+  if(!d){$("flash").innerHTML=`<div class="empty">카드를 다 봤어요! 처음 화면에서 문제를 풀어 보세요.</div>`;$("cn").textContent="";$("cbar").style.width="100%";return}
+  $("cn").textContent=`${C.i+1} / ${C.list.length}`;$("cbar").style.width=(C.i/C.list.length*100)+"%";
+  $("flash").innerHTML=`<div class="tagl" style="margin:0 0 14px">${esc(d.s)} · ${esc(d.u)}</div><div class="fw">${esc(d.w)}</div>${C.open?`<div class="fm">${esc(d.m)}</div><div style="margin-top:14px">${spkBtn(d.w+". "+d.m)}</div>`:`<div class="hint">눌러서 뜻 보기</div>`}`;
+}
+$("flash").onclick=()=>{if(C.list[C.i]){C.open=!C.open;renderCard()}};
+const cardMark=ok=>{const d=C.list[C.i];if(!d)return;const k=K(d);if(ok){mastered.add(k);wrong.delete(k)}else{wrong.add(k);mastered.delete(k)}save();C.i++;C.open=false;renderCard()};
+$("cyes").onclick=()=>cardMark(true);$("cno").onclick=()=>cardMark(false);
+
+/* 오답 노트 */
+function renderWrong(){
+  const w=DATA.filter(d=>wrong.has(K(d)));
+  $("wn").textContent=`${w.length}개`;
+  $("wbody").innerHTML=w.length?`<button class="cta" id="wquiz" style="margin:0 0 6px">오답만 문제 풀기 (${Math.min(w.length,20)}문제)</button><div class="list">${w.map(d=>`<div class="li"><b>${esc(d.w)}</b><p>${esc(d.m)}</p><div class="acts">${spkBtn(d.w+". "+d.m)}<button class="x" data-del="${esc(K(d))}" aria-label="오답 노트에서 빼기">외움</button></div></div>`).join("")}</div>`:`<div class="empty">오답 노트가 비어 있어요.<br>문제를 풀다 틀린 낱말이 여기에 모여요.</div>`;
+}
+$("wbody").addEventListener("click",e=>{
+  const x=e.target.closest("[data-del]");if(x){wrong.delete(x.dataset.del);mastered.add(x.dataset.del);save();renderWrong();return}
+  if(e.target.closest("#wquiz")){const w=shuffle(DATA.filter(d=>wrong.has(K(d)))).slice(0,20);SECS.forEach(s=>$(s).hidden=s!=="quiz");startQuiz(w,"오답 다시 풀기")}
+});
+
+/* 듣기 모드 */
+const L={list:[],i:0,playing:false,tok:0,mode:store.get("lmode","w"),gap:+store.get("lgap","4")};
+const wait=ms=>new Promise(r=>{const h=setTimeout(r,ms);L.cancel=()=>{clearTimeout(h);r()}});
+function lsegs(){[["lmode",L.mode],["lgap",String(L.gap)]].forEach(([id,v])=>$(id).querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v)))}
+function lshow(reveal){const d=L.list[L.i];if(!d)return;$("ln").textContent=`${L.i+1} / ${L.list.length}`;$("ltag").textContent=`${d.s} · ${d.u}`;$("lw").textContent=d.w;$("lm").textContent=d.m;$("lw").className="prompt w"+(L.playing&&!reveal&&L.mode==="m"?" dim":"");$("lm").className="prompt"+(L.playing&&!reveal&&L.mode==="w"?" dim":"")}
+function startListen(){$("lwarn").hidden=tts;L.list=pool();L.i=0;lsegs();lshow(true);$("lst").textContent="재생을 누르면 소리로 읽어 줘요."}
+async function lloop(t){
+  while(L.playing&&t===L.tok){
+    const d=L.list[L.i];if(!d)break;lshow(false);
+    if(L.mode==="w"){$("lst").textContent="낱말을 듣고 뜻을 떠올려 보세요";await say(d.w,t);if(t!==L.tok)return;await wait(L.gap*1000);if(t!==L.tok)return;lshow(true);$("lst").textContent="뜻";await say(d.m,t)}
+    else{$("lst").textContent="뜻을 듣고 낱말을 맞혀 보세요";await say(d.m,t);if(t!==L.tok)return;$("lst").textContent="무엇일까요?";await wait(L.gap*1000);if(t!==L.tok)return;lshow(true);$("lst").textContent="정답";await say("정답, "+d.w,t)}
+    if(t!==L.tok)return;await wait(1300);if(t!==L.tok)return;
+    if(L.i<L.list.length-1)L.i++;else{await say("한 바퀴를 다 들었어요. 처음부터 다시 들을게요.",t);if(t!==L.tok)return;L.i=0}
+  }
+}
+let lock=null;
+async function wake(on){try{if(on&&navigator.wakeLock)lock=await navigator.wakeLock.request("screen");else if(lock){lock.release();lock=null}}catch(e){}}
+function setPlay(on){L.playing=on&&tts;L.tok++;if(L.cancel)L.cancel();if(tts)speechSynthesis.cancel();$("lplay").textContent=L.playing?"멈춤":"재생";wake(L.playing);if(L.playing)lloop(L.tok);else{lshow(true);if(on===false&&$("listen").hidden===false)$("lst").textContent="멈췄어요. 재생을 누르면 이어서 들어요."}}
+function stopListen(){if(L.playing)setPlay(false)}
+$("lplay").onclick=()=>setPlay(!L.playing);
+const ljump=k=>{if(!L.list.length)return;L.i=(L.i+k+L.list.length)%L.list.length;if(L.playing)setPlay(true);else lshow(true)};
+$("lprev").onclick=()=>ljump(-1);$("lnext").onclick=()=>ljump(1);
+["lmode","lgap"].forEach(id=>$(id).onclick=e=>{const b=e.target.closest("button");if(!b)return;const v=b.dataset.v;if(id==="lmode")L.mode=v;else L.gap=+v;store.set(id,v);lsegs();if(L.playing)setPlay(true)});
+
+renderHome();
+}
+</script>
 </body>
 </html>
